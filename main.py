@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import argparse
 import os
-import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -62,7 +62,42 @@ def demo_llm(prompt: str) -> str:
     return f"[DEMO LLM] Generated answer from prompt preview: {preview}..."
 
 
-def run_manual_demo(question: str | None = None, sample_files: list[str] | None = None) -> int:
+def _build_embedder(
+    embedding: str,
+    local_model: str,
+    openai_model: str,
+) -> tuple[object, str]:
+    selected = (embedding or "auto").strip().lower()
+    if selected == "auto":
+        selected = os.getenv(EMBEDDING_PROVIDER_ENV, "mock").strip().lower()
+
+    if selected == "local":
+        try:
+            embedder = LocalEmbedder(model_name=local_model)
+            return embedder, ""
+        except Exception as exc:
+            return _mock_embed, f"[WARN] Local embedder unavailable ({exc}). Falling back to mock."
+
+    if selected == "openai":
+        api_key = (os.getenv("OPENAI_API_KEY") or "").strip()
+        if not api_key:
+            return _mock_embed, "[WARN] OpenAI embedder unavailable (missing OPENAI_API_KEY). Falling back to mock."
+        try:
+            embedder = OpenAIEmbedder(model_name=openai_model, api_key=api_key)
+            return embedder, ""
+        except Exception as exc:
+            return _mock_embed, f"[WARN] OpenAI embedder unavailable ({exc}). Falling back to mock."
+
+    return _mock_embed, ""
+
+
+def run_manual_demo(
+    question: str | None = None,
+    sample_files: list[str] | None = None,
+    embedding: str = "auto",
+    local_model: str = LOCAL_EMBEDDING_MODEL,
+    openai_model: str = OPENAI_EMBEDDING_MODEL,
+) -> int:
     files = sample_files or SAMPLE_FILES
     query = question or "Summarize the key information from the loaded files."
 
@@ -84,19 +119,15 @@ def run_manual_demo(question: str | None = None, sample_files: list[str] | None 
         print(f"  - {doc.id}: {doc.metadata['source']}")
 
     load_dotenv(override=False)
-    provider = os.getenv(EMBEDDING_PROVIDER_ENV, "mock").strip().lower()
-    if provider == "local":
-        try:
-            embedder = LocalEmbedder(model_name=os.getenv("LOCAL_EMBEDDING_MODEL", LOCAL_EMBEDDING_MODEL))
-        except Exception:
-            embedder = _mock_embed
-    elif provider == "openai":
-        try:
-            embedder = OpenAIEmbedder(model_name=os.getenv("OPENAI_EMBEDDING_MODEL", OPENAI_EMBEDDING_MODEL))
-        except Exception:
-            embedder = _mock_embed
-    else:
-        embedder = _mock_embed
+    resolved_local_model = os.getenv("LOCAL_EMBEDDING_MODEL", local_model)
+    resolved_openai_model = os.getenv("OPENAI_EMBEDDING_MODEL", openai_model)
+    embedder, warning = _build_embedder(
+        embedding=embedding,
+        local_model=resolved_local_model,
+        openai_model=resolved_openai_model,
+    )
+    if warning:
+        print(warning)
 
     print(f"\nEmbedding backend: {getattr(embedder, '_backend_name', embedder.__class__.__name__)}")
 
@@ -120,8 +151,41 @@ def run_manual_demo(question: str | None = None, sample_files: list[str] | None 
 
 
 def main() -> int:
-    question = " ".join(sys.argv[1:]).strip() if len(sys.argv) > 1 else None
-    return run_manual_demo(question=question)
+    parser = argparse.ArgumentParser(description="Manual RAG demo runner.")
+    parser.add_argument(
+        "question",
+        nargs="*",
+        help="Optional question string. If omitted, a default prompt is used.",
+    )
+    parser.add_argument(
+        "--embedding",
+        choices=["auto", "local", "openai", "mock"],
+        default="auto",
+        help=(
+            "Embedding backend. 'auto' reads EMBEDDING_PROVIDER from env. "
+            "Use 'local' for all-MiniLM-L6-v2 and 'openai' for OpenAI embeddings."
+        ),
+    )
+    parser.add_argument(
+        "--local-model",
+        default=LOCAL_EMBEDDING_MODEL,
+        help="Local SentenceTransformer model name.",
+    )
+    parser.add_argument(
+        "--openai-model",
+        default=OPENAI_EMBEDDING_MODEL,
+        help="OpenAI embedding model name.",
+    )
+
+    args = parser.parse_args()
+    question = " ".join(args.question).strip() if args.question else None
+
+    return run_manual_demo(
+        question=question,
+        embedding=args.embedding,
+        local_model=args.local_model,
+        openai_model=args.openai_model,
+    )
 
 
 if __name__ == "__main__":

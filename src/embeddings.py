@@ -46,12 +46,12 @@ class LocalEmbedder:
 class OpenAIEmbedder:
     """OpenAI embeddings API-backed embedder."""
 
-    def __init__(self, model_name: str = OPENAI_EMBEDDING_MODEL) -> None:
+    def __init__(self, model_name: str = OPENAI_EMBEDDING_MODEL, api_key: str | None = None) -> None:
         from openai import OpenAI
 
         self.model_name = model_name
         self._backend_name = model_name
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=api_key) if api_key else OpenAI()
 
     def __call__(self, text: str) -> list[float]:
         response = self.client.embeddings.create(model=self.model_name, input=text)

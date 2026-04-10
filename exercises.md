@@ -119,11 +119,11 @@ Mỗi nhóm viết **đúng 5 benchmark queries** kèm **gold answers**.
 
 | # | Query | Gold Answer (câu trả lời đúng) | Chunk nào chứa thông tin? |
 |---|-------|-------------------------------|--------------------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 | "Đảo" được định nghĩa như thế nào trong Luật Biển Việt Nam? | Đảo là một vùng đất tự nhiên có nước bao bọc, khi thủy triều lên vùng đất này vẫn ở trên mặt nước. | luatbienvietnam.md (Điều 3) |
+| 2 | Việc cấp Giấy phép kinh doanh vận tải đa phương thức quốc tế có thời hạn hiệu lực là bao nhiêu năm? | Giấy phép kinh doanh vận tải đa phương thức quốc tế có thời hạn hiệu lực là 05 năm kể từ ngày cấp. | nghidinh144.md (Điều 6, khoản 4) |
+| 3 | Về điều kiện kinh doanh, Nghị định 144/2018/NĐ-CP đã sửa đổi, bổ sung yêu cầu gì so với Nghị định 87/2009/NĐ-CP? | Nghị định 144/2018 nới lỏng hoặc thay đổi một số thủ tục, điều kiện tài chính và yêu cầu bảo hiểm trách nhiệm nghề nghiệp so với quy định trước đó. | nghidinh144.md + nghidinhvevantai.md |
+| 4 | Đối với tàu khách cao tốc, nếu hành khách mang theo vũ khí hoặc chất nổ lên tàu thì có vi phạm không và quy định chi tiết là gì? | Hành khách không được mang vũ khí, chất cháy nổ lên tàu; vi phạm sẽ bị từ chối vận chuyển và xử lý theo quy định pháp luật. | thongtu66.md |
+| 5 | Hãy tìm các điều kiện kinh doanh dịch vụ lai dắt tàu biển. (Chỉ tìm trong văn bản loại "nghi_dinh") | Doanh nghiệp phải thành lập hợp pháp, đáp ứng điều kiện về phương tiện, nhân lực, an toàn hàng hải và nghĩa vụ pháp lý liên quan theo quy định nghị định. | nghidinhvedieukienkinhdoanh.md (metadata filter: doc_type=decree) |
 
 **Yêu cầu:**
 - Queries phải đa dạng (không hỏi 5 câu giống nhau)
